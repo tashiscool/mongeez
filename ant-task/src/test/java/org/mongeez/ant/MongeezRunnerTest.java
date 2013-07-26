@@ -263,4 +263,70 @@ public class MongeezRunnerTest {
             assertFalse(cursor.next().containsField("date"));
         }
     }
+
+    /**
+     * See if we get an exception when a unique index is created on a non-unique field.
+     * @throws UnknownHostException 
+     */
+    @Test
+    public void runBadMongeezScriptUniqueIndexCreationFailure() throws UnknownHostException {
+        // configure and run the ant task
+        MongeezRunner antTask = new MongeezRunner();
+        antTask.setHost("localhost");
+        antTask.setPort(mongoPort);
+        antTask.setDbName("unittest");
+        antTask.setFilePath("target/test-classes/mongeez_badtest3.xml");
+        try {
+            antTask.execute();
+        } catch (Exception e) {
+            assertTrue(e instanceof MongoException.DuplicateKey);
+        }
+        
+        // check the results
+        Mongo mongo = new Mongo("localhost", mongoPort);
+        DB db = mongo.getDB("unittest");
+        Set<String> collections = db.getCollectionNames();
+        assertTrue(collections.contains("mongeez"));
+        DBCollection mongeez = db.getCollection("mongeez");
+        BasicDBObject query = new BasicDBObject();
+        query.put("type", "changeSetExecution");
+        query.put("file", "changelog_badset4.js");
+        query.put("changeId", "breakingIndex");
+        long foundEntryCount = mongeez.count(query);
+        assertEquals(0, foundEntryCount);
+    }
+
+    /**
+     * See if we get an exception when trying to run a background index.
+     * TODO: find a way to make this possible through mongeez!
+     * @throws UnknownHostException 
+     */
+    @Test
+    public void runBadMongeezScriptBackgroundIndex() throws UnknownHostException {
+        // configure and run the ant task
+        MongeezRunner antTask = new MongeezRunner();
+        antTask.setHost("localhost");
+        antTask.setPort(mongoPort);
+        antTask.setDbName("unittest");
+        antTask.setFilePath("target/test-classes/mongeez_badtest4.xml");
+        try {
+            antTask.execute();
+        } catch (Exception e) {
+            assertTrue(e instanceof MongoException);
+            assertTrue(e.getMessage().contains("can't start bg index b/c in recursive lock (db.eval?)"), e.getMessage());
+        }
+        
+        // check the results
+        Mongo mongo = new Mongo("localhost", mongoPort);
+        DB db = mongo.getDB("unittest");
+        Set<String> collections = db.getCollectionNames();
+        assertTrue(collections.contains("mongeez"));
+        DBCollection mongeez = db.getCollection("mongeez");
+        BasicDBObject query = new BasicDBObject();
+        query.put("type", "changeSetExecution");
+        query.put("file", "changelog_badset5.js");
+        query.put("changeId", "breakingIndex2");
+        long foundEntryCount = mongeez.count(query);
+        assertEquals(0, foundEntryCount);
+    }
 }
