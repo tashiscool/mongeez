@@ -12,6 +12,7 @@
 
 package org.mongeez;
 
+import com.mongodb.MongoClientURI;
 import org.mongeez.commands.ChangeSet;
 import org.mongeez.commands.Script;
 import org.mongeez.reader.ChangeSetFileProvider;
@@ -34,10 +35,14 @@ public class Mongeez {
     private String dbName;
     private MongoAuth auth = null;
     private ChangeSetFileProvider changeSetFileProvider;
+    private MongoClientURI mongoUri;
 
     public void process() {
         List<ChangeSet> changeSets = getChangeSets();
-        new ChangeSetExecutor(mongo, dbName, auth).execute(changeSets);
+        if(mongo == null)
+            new RawChangeSetExecutor(mongoUri, dbName, auth).execute(changeSets);
+        else
+            new RawChangeSetExecutor(mongo,dbName,auth).execute(changeSets);
     }
 
     private List<ChangeSet> getChangeSets() {
@@ -89,4 +94,7 @@ public class Mongeez {
         this.changeSetFileProvider = changeSetFileProvider;
     }
 
+    public void setMongoUri(MongoClientURI mongoUri) {
+        this.mongoUri = mongoUri;
+    }
 }

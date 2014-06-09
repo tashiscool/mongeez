@@ -12,6 +12,7 @@
 package org.mongeez;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClientURI;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
@@ -32,6 +33,7 @@ public class MongeezRunner implements InitializingBean {
     private String passWord;
     
     private ChangeSetFileProvider changeSetFileProvider;
+    private MongoClientURI mongoUri;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -42,7 +44,11 @@ public class MongeezRunner implements InitializingBean {
 
     public void execute() {
         Mongeez mongeez = new Mongeez();
-        mongeez.setMongo(mongo);
+        if(mongo == null){
+            mongeez.setMongoUri(mongoUri);
+        }else{
+            mongeez.setMongo(mongo);
+        }
         mongeez.setDbName(dbName);
         if (changeSetFileProvider != null) {
             mongeez.setChangeSetFileProvider(changeSetFileProvider);
@@ -68,6 +74,10 @@ public class MongeezRunner implements InitializingBean {
 
     public void setMongo(Mongo mongo) {
         this.mongo = mongo;
+    }
+
+    public void setMongoUri(MongoClientURI mongoUri) {
+        this.mongoUri = mongoUri;
     }
 
     public void setDbName(String dbName) {

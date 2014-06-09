@@ -26,7 +26,11 @@ import java.util.List;
 public class ChangeSetExecutor {
     private final Logger logger = LoggerFactory.getLogger(ChangeSetExecutor.class);
 
-    private MongeezDao dao = null;
+    protected MongeezDao dao = null;
+
+    protected ChangeSetExecutor() {
+
+    }
 
     public ChangeSetExecutor(Mongo mongo, String dbName) {
         this(mongo, dbName, null);
